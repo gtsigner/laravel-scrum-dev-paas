@@ -1,0 +1,17 @@
+# Created by .ignore support plugin (hsz.mobi)
+/.idea
+#数据库文件
+
+/data/mysql/*
+/data/redis/*
+/data/backup/*
+!/data/backup/README.txt
+!/data/mysql/README.txt
+/logs/mysql/*.log
+/logs/nginx/*.log
+/logs/php-fpm/*.log
+/logs/redis/*.log
+
+!/data/backup/*.sql
+!/data/redis/README.txt
+

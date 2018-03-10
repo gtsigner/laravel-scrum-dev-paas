@@ -1,0 +1,71 @@
+version:  '3.2'
+services:
+  nginx:
+    image: nginx:1.13.3
+    ports:
+      - "80:80"
+    links:
+      - "php-fpm:php-fpm"
+    volumes:
+#网站目录
+      - ./app:/app
+      - ./dockerfiles/nginx/conf.d:/etc/nginx/conf.d:ro
+#日志文件
+      - ./logs/nginx:/var/log/nginx
+      - /etc/localtime:/etc/localtime:ro
+    depends_on:
+      - redis-db
+    restart: always
+    command: nginx -g 'daemon off;'
+
+##mysql db
+  mysql-db:
+    image: mysql:5.7
+    volumes:
+      - ./data/mysql:/var/lib/mysql:rw
+      - ./logs/mysql:/var/lib/mysql-logs:rw
+      - ./dockerfiles/mysql/conf.d:/etc/mysql/conf.d:ro
+      - /etc/localtime:/etc/localtime:ro
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+        MYSQL_ROOT_PASSWORD: zhaojun
+        MYSQL_DATABASE: package_v1
+        MYSQL_USER: zhaojun
+        MYSQL_PASSWORD: zhaojun
+
+  redis-db:
+    build: ./dockerfiles/redis
+    restart: always
+    volumes:
+      - ./data/redis:/data
+      - /etc/localtime:/etc/localtime:ro
+
+  php-fpm:
+    build: ./dockerfiles/php/
+    image: oeygame.com/php-7.1:test
+    restart: always
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      APP_DEBUG: 1
+    volumes:
+      - ./app:/app:rw
+      - ./dockerfiles/php/php-dev.ini:/usr/local/etc/php/php-dev.ini:ro
+      - ./dockerfiles/php/php-fpm.conf:/usr/local/etc/php-fpm.conf:ro
+      - /etc/localtime:/etc/localtime:ro
+      - ./logs/php-fpm:/var/log/php-fpm:rw
+    links:
+      - mysql-db:mysql-db
+      - redis-db:redis-db
+      - mongo-db:mongo-db
+    command: php-fpm
+  mongo-db:
+    image: mongo:3.2.19-jessie
+    restart: always
+#    volumes:
+#      - ./data/mongo/db:/data/db
+    ports:
+      - 27017:27017
